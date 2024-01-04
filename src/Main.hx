@@ -14,8 +14,8 @@ class Main {
     out vec4 fragColor;
 
     void main() {
-		float ar = float(width)/float(height);
-        gl_Position = vec4(vert.x / ar, vert.y, 0.0, 1.0);
+		
+        gl_Position = vec4(vert.x/float(width)*2.0-1.0, vert.y/float(height)*2.0-1.0, 0.0, 1.0);
         fragColor = vertColor;
 	}';
 

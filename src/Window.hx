@@ -28,8 +28,17 @@ class Window {
 		trace('OpenGL ${GL.getParameter(GL.VERSION)}');
 	}
 
+	public function load() {}
+
+	public function update() {}
+
+	public function draw() {}
+
+	public function unload() {}
+
 	public function run() {
 		var quit = false;
+		load();
 
 		while (!quit) {
 			Sdl.processEvents((event) -> {
@@ -44,9 +53,16 @@ class Window {
 				}
 				return false;
 			});
-			GL.clear(GL.COLOR_BUFFER_BIT);
 
+			update();
+			GL.clear(GL.COLOR_BUFFER_BIT);
+			draw();
 			window.present();
 		}
+
+		unload();
+
+		window.destroy();
+		Sdl.quit();
 	}
 }

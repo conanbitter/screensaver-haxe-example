@@ -1,2 +1,2 @@
-# screensaver-haxe-example
-Simple screensaver example, written in Haxe.
+# Screensaver Haxe example
+Simple screensaver example, written in Haxe for Hashlink.

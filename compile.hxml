@@ -1,0 +1,4 @@
+-cp src
+-main Main
+-lib hlsdl
+--hl screensaver.hl

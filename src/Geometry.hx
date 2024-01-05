@@ -12,6 +12,10 @@ class Vector2D {
 		this.x = x;
 		this.y = y;
 	}
+
+	static public function getRandom(width:Int, height:Int):Vector2D {
+		return new Vector2D(Math.random() * width, Math.random() * height);
+	}
 }
 
 class Color {
@@ -25,6 +29,11 @@ class Color {
 		this.g = g;
 		this.b = b;
 		this.a = a;
+	}
+
+	static public function getRandom(low:Int):Color {
+		final range = 255 - low;
+		return new Color(Std.int(Math.random() * range + low), Std.int(Math.random() * range + low), Std.int(Math.random() * range + low));
 	}
 
 	public static final White:Color = new Color(255, 255, 255);
@@ -83,6 +92,7 @@ class Geometry {
     }';
 
 	static final VERT_BUFFER_LENGTH = VERTEX_PER_FIGURE * FIGURE_COUNT * Vertex.size;
+	static final INDEX_BUFFER_SIZE = VERTEX_PER_FIGURE * FIGURE_COUNT * 2;
 
 	var vertices = new Vector<Vertex>(VERTEX_PER_FIGURE * FIGURE_COUNT);
 	var vertBuffer = new Bytes(VERT_BUFFER_LENGTH);
@@ -95,6 +105,9 @@ class Geometry {
 	public function new(parent:Window) {
 		this.parent = parent;
 
+		GL.disable(GL.DEPTH_TEST);
+		GL.enable(GL.BLEND);
+
 		vao = GL.createVertexArray();
 		GL.bindVertexArray(vao);
 
@@ -103,6 +116,9 @@ class Geometry {
 
 		program = new ShaderProgram(VERTEX_SHADER, FRAGMENT_SHADER);
 		program.use();
+		program.setUniform("width", parent.width);
+		program.setUniform("height", parent.height);
+		GL.viewport(0, 0, parent.width, parent.height);
 
 		final locPos = program.getAttribLocation("vert");
 		GL.enableVertexAttribArray(locPos);
@@ -115,13 +131,13 @@ class Geometry {
 
 		final ebo = GL.createBuffer();
 		GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, ebo);
-		final dataLength = VERTEX_PER_FIGURE * FIGURE_COUNT * 2 * 4;
+		final dataLength = INDEX_BUFFER_SIZE * 4;
 		final indexData = new Bytes(dataLength);
 		var curIndex = 0;
 		var curBufferPos = 0;
 		for (i in 0...FIGURE_COUNT) {
 			var first = curIndex;
-			for (j in 0...VERTEX_PER_FIGURE) {
+			for (j in 0...VERTEX_PER_FIGURE - 1) {
 				indexData.setI32(curBufferPos, curIndex);
 				curBufferPos += 4;
 				curIndex++;
@@ -135,5 +151,19 @@ class Geometry {
 			curIndex++;
 		}
 		GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, dataLength, indexData, GL.STATIC_DRAW);
+
+		for (i in 0...vertices.length) {
+			vertices[i] = new Vertex(Vector2D.getRandom(parent.width - 1, parent.height - 1), Color.getRandom(100));
+		}
+	}
+
+	public function draw() {
+		for (i in 0...vertices.length) {
+			vertices[i].write(vertBuffer, i * Vertex.size);
+		}
+		GL.bindVertexArray(vao);
+		GL.bufferSubData(GL.ARRAY_BUFFER, 0, vertBuffer, 0, VERT_BUFFER_LENGTH);
+
+		GL.drawElements(GL.LINES, INDEX_BUFFER_SIZE, GL.INT, 0);
 	}
 }

@@ -7,6 +7,11 @@ class LinesWindow extends Window {
 		super("Lines", 1280, 720);
 		geometry = new Geometry(this);
 	}
+
+	override function draw() {
+		super.draw();
+		geometry.draw();
+	}
 }
 
 class Main {

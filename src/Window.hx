@@ -40,6 +40,8 @@ class Window {
 		var quit = false;
 		load();
 
+		GL.clearColor(0.0, 0.0, 0.0, 1.0);
+
 		while (!quit) {
 			Sdl.processEvents((event) -> {
 				switch (event.type) {

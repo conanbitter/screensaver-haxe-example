@@ -164,6 +164,6 @@ class Geometry {
 		GL.bindVertexArray(vao);
 		GL.bufferSubData(GL.ARRAY_BUFFER, 0, vertBuffer, 0, VERT_BUFFER_LENGTH);
 
-		GL.drawElements(GL.LINES, INDEX_BUFFER_SIZE, GL.INT, 0);
+		GL.drawElements(GL.LINES, INDEX_BUFFER_SIZE, GL.UNSIGNED_INT, 0);
 	}
 }

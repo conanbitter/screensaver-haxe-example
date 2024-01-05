@@ -4,19 +4,19 @@ import sdl.GL;
 class Window {
 	var window:sdl.Window;
 
-	var wndWidth:Int;
-	var wndHeight:Int;
+	public var width(default, null):Int;
+	public var height(default, null):Int;
 
 	function initSDL(title:String) {
 		Sdl.init();
 		Sdl.setGLOptions(3, 2);
 
-		window = new sdl.Window(title, wndWidth, wndHeight);
+		window = new sdl.Window(title, width, height);
 	}
 
 	public function new(title:String, width:Int, height:Int) {
-		wndWidth = width;
-		wndHeight = height;
+		this.width = width;
+		this.height = height;
 
 		initSDL(title);
 

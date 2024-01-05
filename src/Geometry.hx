@@ -1,5 +1,7 @@
+import Shaders.ShaderProgram;
 import haxe.ds.Vector;
 import hl.Bytes;
+import sdl.GL;
 
 class Vector2D {
 	public var x:Single = 0;
@@ -80,6 +82,58 @@ class Geometry {
         outputColor = fragColor;
     }';
 
+	static final VERT_BUFFER_LENGTH = VERTEX_PER_FIGURE * FIGURE_COUNT * Vertex.size;
+
 	var vertices = new Vector<Vertex>(VERTEX_PER_FIGURE * FIGURE_COUNT);
-	var vertBuffer = new Bytes(VERTEX_PER_FIGURE * FIGURE_COUNT * Vertex.size);
+	var vertBuffer = new Bytes(VERT_BUFFER_LENGTH);
+
+	var vao:VertexArray;
+	var vbo:Buffer;
+	var program:ShaderProgram;
+	var parent:Window;
+
+	public function new(parent:Window) {
+		this.parent = parent;
+
+		vao = GL.createVertexArray();
+		GL.bindVertexArray(vao);
+
+		vbo = GL.createBuffer();
+		GL.bindBuffer(GL.ARRAY_BUFFER, vbo);
+
+		program = new ShaderProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+		program.use();
+
+		final locPos = program.getAttribLocation("vert");
+		GL.enableVertexAttribArray(locPos);
+		GL.vertexAttribPointer(locPos, 2, GL.FLOAT, false, Vertex.size, 0);
+		final locColor = program.getAttribLocation("vertColor");
+		GL.enableVertexAttribArray(locColor);
+		GL.vertexAttribPointer(locColor, 4, GL.UNSIGNED_BYTE, true, Vertex.size, 2 * 4);
+
+		GL.bufferData(GL.ARRAY_BUFFER, VERT_BUFFER_LENGTH, vertBuffer, GL.DYNAMIC_DRAW);
+
+		final ebo = GL.createBuffer();
+		GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, ebo);
+		final dataLength = VERTEX_PER_FIGURE * FIGURE_COUNT * 2 * 4;
+		final indexData = new Bytes(dataLength);
+		var curIndex = 0;
+		var curBufferPos = 0;
+		for (i in 0...FIGURE_COUNT) {
+			var first = curIndex;
+			for (j in 0...VERTEX_PER_FIGURE) {
+				indexData.setI32(curBufferPos, curIndex);
+				curBufferPos += 4;
+				curIndex++;
+				indexData.setI32(curBufferPos, curIndex);
+				curBufferPos += 4;
+			}
+			indexData.setI32(curBufferPos, curIndex);
+			curBufferPos += 4;
+			indexData.setI32(curBufferPos, first);
+			curBufferPos += 4;
+			curIndex++;
+		}
+		GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, dataLength, indexData, GL.STATIC_DRAW);
+	}
 }

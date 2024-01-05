@@ -1,3 +1,4 @@
+import haxe.ds.Vector;
 import hl.Bytes;
 
 class Vector2D {
@@ -46,4 +47,39 @@ class Vertex {
 	}
 
 	public static final size:Int = 2 * 4 + 4;
+}
+
+class Geometry {
+	static final FIGURE_COUNT = 2;
+	static final VERTEX_PER_FIGURE = 4;
+
+	static final VERTEX_SHADER:String = '
+	#version 150
+
+    uniform int width;
+	uniform int height;
+
+    in vec2 vert;
+    in vec4 vertColor;
+
+    out vec4 fragColor;
+
+    void main() {
+        gl_Position = vec4(vert.x/float(width)*2.0-1.0, vert.y/float(height)*2.0-1.0, 0.0, 1.0);
+        fragColor = vertColor;
+	}';
+
+	static final FRAGMENT_SHADER:String = '
+	#version 150
+
+    in vec4 fragColor;
+
+    out vec4 outputColor;
+
+    void main() {
+        outputColor = fragColor;
+    }';
+
+	var vertices = new Vector<Vertex>(VERTEX_PER_FIGURE * FIGURE_COUNT);
+	var vertBuffer = new Bytes(VERTEX_PER_FIGURE * FIGURE_COUNT * Vertex.size);
 }

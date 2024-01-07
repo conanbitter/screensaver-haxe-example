@@ -9,7 +9,7 @@ class Window {
 
 	function initSDL(title:String) {
 		Sdl.init();
-		Sdl.setGLOptions(3, 2);
+		Sdl.setGLOptions(3, 2, 23, 8, 1, 4);
 
 		window = new sdl.Window(title, width, height);
 	}

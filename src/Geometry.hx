@@ -87,8 +87,8 @@ class Vertex {
 }
 
 class Geometry {
-	static final FIGURE_COUNT = 2;
-	static final VERTEX_PER_FIGURE = 4;
+	static final FIGURE_COUNT = 4;
+	static final VERTEX_PER_FIGURE = 3;
 
 	static final VERTEX_SHADER:String = '
 	#version 150

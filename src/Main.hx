@@ -12,6 +12,11 @@ class LinesWindow extends Window {
 		super.draw();
 		geometry.draw();
 	}
+
+	override function update() {
+		super.update();
+		geometry.update();
+	}
 }
 
 class Main {

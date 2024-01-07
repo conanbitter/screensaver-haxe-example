@@ -36,19 +36,31 @@ class Color {
 		return new Color(Std.int(Math.random() * range + low), Std.int(Math.random() * range + low), Std.int(Math.random() * range + low));
 	}
 
+	static function intLerp(v1:Int, v2:Int, factor:Float):Int {
+		return v1 + Std.int((v2 - v1) * factor);
+	}
+
+	static public function lerp(c1:Color, c2:Color, factor:Float):Color {
+		return new Color(intLerp(c1.r, c2.r, factor), intLerp(c1.g, c2.g, factor), intLerp(c1.b, c2.b, factor), intLerp(c1.a, c2.a, factor));
+	}
+
 	public static final White:Color = new Color(255, 255, 255);
 }
 
 class Vertex {
 	public var pos:Vector2D;
-	public var color:Color;
+	public var color1:Color;
+	public var color2:Color;
 
-	public function new(pos:Vector2D, color:Color) {
+	public function new(pos:Vector2D, color1:Color, color2:Color) {
 		this.pos = pos;
-		this.color = color;
+		this.color1 = color1;
+		this.color2 = color1;
 	}
 
-	public function write(buffer:Bytes, offset:Int = 0) {
+	public function write(buffer:Bytes, offset:Int = 0, factor:Float) {
+		var color = Color.lerp(color1, color2, factor);
+
 		buffer.setF32(offset, pos.x);
 		buffer.setF32(offset + 4, pos.y);
 		buffer.setUI8(offset + 8, color.r);
@@ -93,6 +105,8 @@ class Geometry {
 
 	static final VERT_BUFFER_LENGTH = VERTEX_PER_FIGURE * FIGURE_COUNT * Vertex.size;
 	static final INDEX_BUFFER_SIZE = VERTEX_PER_FIGURE * FIGURE_COUNT * 2;
+	static final COLOR_CHANGE_SPEED:Float = 0.01;
+	static final COLOR_MIN = 30;
 
 	var vertices = new Vector<Vertex>(VERTEX_PER_FIGURE * FIGURE_COUNT);
 	var vertBuffer = new Bytes(VERT_BUFFER_LENGTH);
@@ -101,6 +115,8 @@ class Geometry {
 	var vbo:Buffer;
 	var program:ShaderProgram;
 	var parent:Window;
+
+	var colorFactor:Float = 0.0;
 
 	public function new(parent:Window) {
 		this.parent = parent;
@@ -152,18 +168,35 @@ class Geometry {
 		}
 		GL.bufferData(GL.ELEMENT_ARRAY_BUFFER, dataLength, indexData, GL.STATIC_DRAW);
 
+		var color1 = Color.getRandom(COLOR_MIN);
+		var color2 = Color.getRandom(COLOR_MIN);
 		for (i in 0...vertices.length) {
-			vertices[i] = new Vertex(Vector2D.getRandom(parent.width - 1, parent.height - 1), Color.getRandom(100));
+			vertices[i] = new Vertex(Vector2D.getRandom(parent.width - 1, parent.height - 1), color1, color2);
+			color1 = color2;
+			color2 = Color.getRandom(COLOR_MIN);
 		}
 	}
 
 	public function draw() {
 		for (i in 0...vertices.length) {
-			vertices[i].write(vertBuffer, i * Vertex.size);
+			vertices[i].write(vertBuffer, i * Vertex.size, colorFactor);
 		}
 		GL.bindVertexArray(vao);
 		GL.bufferSubData(GL.ARRAY_BUFFER, 0, vertBuffer, 0, VERT_BUFFER_LENGTH);
 
 		GL.drawElements(GL.LINES, INDEX_BUFFER_SIZE, GL.UNSIGNED_INT, 0);
+	}
+
+	public function update() {
+		colorFactor += COLOR_CHANGE_SPEED;
+		if (colorFactor > 1.0) {
+			colorFactor = 0.0;
+			for (i in 0...vertices.length - 1) {
+				vertices[i].color1 = vertices[i].color2;
+				vertices[i].color2 = vertices[i + 1].color1;
+			}
+			vertices[vertices.length - 1].color1 = vertices[vertices.length - 1].color2;
+			vertices[vertices.length - 1].color2 = Color.getRandom(COLOR_MIN);
+		}
 	}
 }

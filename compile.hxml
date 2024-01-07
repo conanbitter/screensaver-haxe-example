@@ -2,3 +2,4 @@
 -main Main
 -lib hlsdl
 --hl screensaver.hl
+--cmd hl screensaver.hl

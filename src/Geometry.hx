@@ -5,7 +5,6 @@ import sdl.GL;
 
 class Vector2D {
 	public var x:Single = 0;
-
 	public var y:Single = 0;
 
 	public function new(x:Single, y:Single) {
@@ -15,6 +14,19 @@ class Vector2D {
 
 	static public function getRandom(width:Int, height:Int):Vector2D {
 		return new Vector2D(Math.random() * width, Math.random() * height);
+	}
+
+	static public function getRandomPolar():Vector2D {
+		var angle = Math.random() * Math.PI * 2;
+		return new Vector2D(Math.cos(angle), Math.sin(angle));
+	}
+
+	public function add(other:Vector2D):Vector2D {
+		return new Vector2D(x + other.x, y + other.y);
+	}
+
+	public function scale(factor:Float):Vector2D {
+		return new Vector2D(x * factor, y * factor);
 	}
 }
 
@@ -49,11 +61,13 @@ class Color {
 
 class Vertex {
 	public var pos:Vector2D;
+	public var speed:Vector2D;
 	public var color1:Color;
 	public var color2:Color;
 
-	public function new(pos:Vector2D, color1:Color, color2:Color) {
+	public function new(pos:Vector2D, speed:Vector2D, color1:Color, color2:Color) {
 		this.pos = pos;
+		this.speed = speed;
 		this.color1 = color1;
 		this.color2 = color1;
 	}
@@ -105,8 +119,9 @@ class Geometry {
 
 	static final VERT_BUFFER_LENGTH = VERTEX_PER_FIGURE * FIGURE_COUNT * Vertex.size;
 	static final INDEX_BUFFER_SIZE = VERTEX_PER_FIGURE * FIGURE_COUNT * 2;
-	static final COLOR_CHANGE_SPEED:Float = 0.01;
+	static final COLOR_CHANGE_SPEED = 0.01;
 	static final COLOR_MIN = 30;
+	static final SPEED = 2.0;
 
 	var vertices = new Vector<Vertex>(VERTEX_PER_FIGURE * FIGURE_COUNT);
 	var vertBuffer = new Bytes(VERT_BUFFER_LENGTH);
@@ -171,7 +186,7 @@ class Geometry {
 		var color1 = Color.getRandom(COLOR_MIN);
 		var color2 = Color.getRandom(COLOR_MIN);
 		for (i in 0...vertices.length) {
-			vertices[i] = new Vertex(Vector2D.getRandom(parent.width - 1, parent.height - 1), color1, color2);
+			vertices[i] = new Vertex(Vector2D.getRandom(parent.width - 1, parent.height - 1), Vector2D.getRandomPolar().scale(SPEED), color1, color2);
 			color1 = color2;
 			color2 = Color.getRandom(COLOR_MIN);
 		}
@@ -197,6 +212,16 @@ class Geometry {
 			}
 			vertices[vertices.length - 1].color1 = vertices[vertices.length - 1].color2;
 			vertices[vertices.length - 1].color2 = Color.getRandom(COLOR_MIN);
+		}
+
+		for (vertex in vertices) {
+			if (vertex.pos.x < 0 || vertex.pos.x > parent.width) {
+				vertex.speed.x = -vertex.speed.x;
+			}
+			if (vertex.pos.y < 0 || vertex.pos.y > parent.height) {
+				vertex.speed.y = -vertex.speed.y;
+			}
+			vertex.pos = vertex.pos.add(vertex.speed);
 		}
 	}
 }
